@@ -1,7 +1,7 @@
 package lbox.batch
 
+import lbox.message.ScheduledMessage
 import lbox.message.ScheduledMessageRepository
-import lbox.message.SendScheduledMessagesService
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
@@ -19,7 +19,7 @@ class SendScheduledMessageBatchConfiguration(
     private val jobBuilderFactory: JobBuilderFactory,
     private val stepBuilderFactory: StepBuilderFactory,
     private val scheduledMessageRepository: ScheduledMessageRepository,
-    private val scheduledMessagesService: SendScheduledMessagesService,
+    private val sendScheduledMessageBatchProcessor: SendScheduledMessageBatchProcessor,
 ) {
 
     @Bean
@@ -43,15 +43,21 @@ class SendScheduledMessageBatchConfiguration(
 
                 for (scheduledMessage in scheduledMessagesToBeSent) {
                     try {
-                        this.scheduledMessagesService.send(scheduledMessage)
+                        // this.scheduledMessagesService.send(scheduledMessage)
+                        this.sendScheduledMessageBatchProcessor.process(scheduledMessage)
                     } catch (e: Exception) {
                         println("오류 발생 - id: ${scheduledMessage.id}, error message: ${e.message}")
                         e.printStackTrace()
+                        this.sendBatchErrorMessageViaSlack(scheduledMessage, e)
                     }
                 }
 
                 RepeatStatus.FINISHED
             }
             .build()
+    }
+
+    private fun sendBatchErrorMessageViaSlack(scheduledMessage: ScheduledMessage, exception: Exception) {
+        println("[Slack] 오류 발생 - id: ${scheduledMessage.id}, error message: ${exception.message}")
     }
 }
