@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/example
+    username: root
+    password: root
+  jpa:
+    open-in-view: false
+    show-sql: true
+    hibernate:
+      ddl-auto: validate
+
+  batch:
+    job:
+      enabled: true
+      names: example-job
+    jdbc:
+      initialize-schema: always
+
+logging:
+  level:
+    org.springframework.transaction: TRACE
+    org.springframework.orm.jpa: TRACE
